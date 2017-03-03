@@ -366,10 +366,10 @@ local function runCCControlTest()
 		
 		local screenSize = cc.Director:getInstance():getWinSize()
 		--Add a label in which the slider value will be displayed
-		local pDisplayValueLabel = cc.Label:createWithSystemFont("Move the slider thumb!\nThe lower slider is restricted." ,"Marker Felt", 32)
+		local pDisplayValueLabel = cc.Label:createWithSystemFont("Move the slider thumb!\nThe lower slider is restricted." ,"Marker Felt", 24)
         pDisplayValueLabel:retain()
         pDisplayValueLabel:setAnchorPoint(cc.p(0.5, -1.0))
-        pDisplayValueLabel:setPosition(cc.p(screenSize.width / 1.7, screenSize.height / 2.0))
+        pDisplayValueLabel:setPosition(cc.p(screenSize.width / 2.0, screenSize.height / 2.0 + 24))
         pLayer:addChild(pDisplayValueLabel)
         
         local function valueChanged(pSender)
@@ -591,7 +591,7 @@ local function runCCControlTest()
 
     	pTitleButton:setColor(cc.c3b(159, 168, 176))
     
-    	local pButton = cc.ControlButton:create(pTitleButton, pBackgroundButton)
+    	local pButton = cc.ControlButton:create(pTitleButton, pBackgroundButton,false)
         pButton:setBackgroundSpriteForState(pBackgroundHighlightedButton, cc.CONTROL_STATE_HIGH_LIGHTED )
     	pButton:setTitleColorForState(cc.c3b(255,255,255), cc.CONTROL_STATE_HIGH_LIGHTED )
     

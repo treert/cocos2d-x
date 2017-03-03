@@ -13,6 +13,8 @@ UIPageViewTests::UIPageViewTests()
     ADD_TEST_CASE(UIPageViewJumpToPageTest);
     ADD_TEST_CASE(UIPageViewVerticalTest);
     ADD_TEST_CASE(UIPageViewDisableTouchTest);
+    ADD_TEST_CASE(UIPageViewChildSizeTest);
+    ADD_TEST_CASE(UIPageViewIndicatorTest);
 }
 
 // UIPageViewTest
@@ -59,6 +61,7 @@ bool UIPageViewTest::init()
         pageView->setPosition((widgetSize - pageView->getContentSize()) / 2.0f);
         pageView->removeAllItems();
         pageView->setIndicatorEnabled(true);
+        pageView->setGlobalZOrder(200);
         
         int pageCount = 4;
         for (int i = 0; i < pageCount; ++i)
@@ -82,7 +85,8 @@ bool UIPageViewTest::init()
         
         pageView->removeItem(0);
         pageView->scrollToItem(pageCount - 2);
-        pageView->addEventListener(CC_CALLBACK_2(UIPageViewTest::pageViewEvent, this));
+        //This method is deprecated, we used here only testing purpose
+        pageView->addEventListenerPageView(this, pagevieweventselector(UIPageViewTest::pageViewEvent));
         
         _uiLayer->addChild(pageView);
         
@@ -91,15 +95,15 @@ bool UIPageViewTest::init()
     return false;
 }
 
-void UIPageViewTest::pageViewEvent(Ref *pSender, PageView::EventType type)
+void UIPageViewTest::pageViewEvent(Ref *pSender, PageViewEventType type)
 {
     switch (type)
     {
-        case PageView::EventType::TURNING:
+        case PAGEVIEW_EVENT_TURNING:
         {
             PageView* pageView = dynamic_cast<PageView*>(pSender);
             
-            _displayValueLabel->setString(StringUtils::format("page = %ld", pageView->getCurrentPageIndex() + 1));
+            _displayValueLabel->setString(StringUtils::format("page = %ld", static_cast<long>(pageView->getCurrentPageIndex() + 1)));
         }
             break;
             
@@ -186,7 +190,7 @@ bool UIPageViewButtonTest::init()
         
         pageView->removeItem(0);
         
-        pageView->addEventListener(CC_CALLBACK_2(UIPageViewButtonTest::pageViewEvent, this));
+        pageView->addEventListener((PageView::ccPageViewCallback)CC_CALLBACK_2(UIPageViewButtonTest::pageViewEvent, this));
         
         _uiLayer->addChild(pageView);
         
@@ -197,7 +201,9 @@ bool UIPageViewButtonTest::init()
 
 void UIPageViewButtonTest::onButtonClicked(Ref* sender, Widget::TouchEventType type)
 {
-    log("button %s clicked", static_cast<Button*>(sender)->getName().c_str());
+    if(type == Widget::TouchEventType::ENDED) {
+        log("button %s clicked", static_cast<Button*>(sender)->getName().c_str());
+    }
 }
 
 
@@ -209,7 +215,7 @@ void UIPageViewButtonTest::pageViewEvent(Ref *pSender, PageView::EventType type)
         {
             PageView* pageView = dynamic_cast<PageView*>(pSender);
             
-            _displayValueLabel->setString(StringUtils::format("page = %ld", pageView->getCurrentPageIndex() + 1));
+            _displayValueLabel->setString(StringUtils::format("page = %ld", static_cast<long>(pageView->getCurrentPageIndex() + 1)));
         }
             break;
             
@@ -292,7 +298,7 @@ bool UIPageViewTouchPropagationTest::init()
             pageView->insertCustomItem(outerBox, i);
         }
         
-        pageView->addEventListener(CC_CALLBACK_2(UIPageViewTouchPropagationTest::pageViewEvent, this));
+        pageView->addEventListener((PageView::ccPageViewCallback)CC_CALLBACK_2(UIPageViewTouchPropagationTest::pageViewEvent, this));
         pageView->setName("pageView");
         pageView->addTouchEventListener([](Ref* sender, Widget::TouchEventType type){
             if (type == Widget::TouchEventType::BEGAN)
@@ -352,7 +358,7 @@ bool UIPageViewTouchPropagationTest::init()
         
         auto eventListener = EventListenerTouchOneByOne::create();
         eventListener->onTouchBegan = [](Touch* touch, Event* event) -> bool{
-            CCLOG("layout recieves touches");
+            CCLOG("layout receives touches");
             return true;
         };
         _eventDispatcher->addEventListenerWithSceneGraphPriority(eventListener, this);
@@ -406,7 +412,7 @@ void UIPageViewTouchPropagationTest::pageViewEvent(Ref *pSender, PageView::Event
         {
             PageView* pageView = dynamic_cast<PageView*>(pSender);
             
-            _displayValueLabel->setString(StringUtils::format("page = %ld", pageView->getCurrentPageIndex() + 1));
+            _displayValueLabel->setString(StringUtils::format("page = %ld", static_cast<long>(pageView->getCurrentPageIndex() + 1)));
         }
             break;
             
@@ -492,13 +498,13 @@ bool UIPageViewDynamicAddAndRemoveTest::init()
             pageView->insertCustomItem(outerBox, i);
         }
         
-        pageView->addEventListener(CC_CALLBACK_2(UIPageViewDynamicAddAndRemoveTest::pageViewEvent, this));
+        pageView->addEventListener((PageView::ccPageViewCallback)CC_CALLBACK_2(UIPageViewDynamicAddAndRemoveTest::pageViewEvent, this));
         pageView->setName("pageView");
         _uiLayer->addChild(pageView);
         
         //add buttons
         auto button = Button::create();
-        button->setNormalizedPosition(Vec2(0.12f,0.7f));
+        button->setPositionNormalized(Vec2(0.12f,0.7f));
         button->setTitleText("Add A Page");
         button->setZoomScale(0.3f);
         button->setPressedActionEnabled(true);
@@ -526,13 +532,13 @@ bool UIPageViewDynamicAddAndRemoveTest::init()
             }
             
             pageView->pushBackCustomItem(outerBox);
-            _displayValueLabel->setString(StringUtils::format("page count = %ld", pageView->getItems().size()));
+            _displayValueLabel->setString(StringUtils::format("page count = %ld", static_cast<long>(pageView->getItems().size())));
             CCLOG("current page index = %zd", pageView->getCurrentPageIndex());
         });
         _uiLayer->addChild(button);
         
         auto button2 = Button::create();
-        button2->setNormalizedPosition(Vec2(0.12f,0.5f));
+        button2->setPositionNormalized(Vec2(0.12f,0.5f));
         button2->setTitleText("Remove A Page");
         button2->setZoomScale(0.3f);
         button2->setPressedActionEnabled(true);
@@ -547,14 +553,14 @@ bool UIPageViewDynamicAddAndRemoveTest::init()
             {
                 CCLOG("There is no page to remove!");
             }
-            _displayValueLabel->setString(StringUtils::format("page count = %ld", pageView->getItems().size()));
+            _displayValueLabel->setString(StringUtils::format("page count = %ld", static_cast<long>(pageView->getItems().size())));
             CCLOG("current page index = %zd", pageView->getCurrentPageIndex());
 
         });
         _uiLayer->addChild(button2);
         
         auto button3 = Button::create();
-        button3->setNormalizedPosition(Vec2(0.12f,0.3f));
+        button3->setPositionNormalized(Vec2(0.12f,0.3f));
         button3->setTitleText("Remove All Pages");
         button3->setZoomScale(0.3f);
         button3->setPressedActionEnabled(true);
@@ -562,7 +568,7 @@ bool UIPageViewDynamicAddAndRemoveTest::init()
         button3->addClickEventListener([=](Ref* sender)
         {
             pageView->removeAllItems();
-            _displayValueLabel->setString(StringUtils::format("page count = %ld", pageView->getItems().size()));
+            _displayValueLabel->setString(StringUtils::format("page count = %ld", static_cast<long>(pageView->getItems().size())));
             CCLOG("current page index = %zd", pageView->getCurrentPageIndex());
 
         });
@@ -570,7 +576,7 @@ bool UIPageViewDynamicAddAndRemoveTest::init()
 
         auto button4 = (ui::Button*)button3->clone();
         button4->setTitleText("Scroll to Page4");
-        button4->setNormalizedPosition(Vec2(0.85,0.5));
+        button4->setPositionNormalized(Vec2(0.85f, 0.5f));
         button4->addClickEventListener([=](Ref* sender){
             pageView->scrollToItem(3);
             CCLOG("current page index = %zd", pageView->getCurrentPageIndex());
@@ -591,7 +597,7 @@ void UIPageViewDynamicAddAndRemoveTest::pageViewEvent(Ref *pSender, PageView::Ev
         {
             PageView* pageView = dynamic_cast<PageView*>(pSender);
             
-            _displayValueLabel->setString(StringUtils::format("page = %ld", pageView->getCurrentPageIndex() + 1));
+            _displayValueLabel->setString(StringUtils::format("page = %ld", static_cast<long>((pageView->getCurrentPageIndex() + 1))));
         }
             break;
             
@@ -671,7 +677,7 @@ bool UIPageViewJumpToPageTest::init()
 
         //add buttons to jump to specific page
         auto button1 = ui::Button::create();
-        button1->setNormalizedPosition(Vec2(0.1, 0.75));
+        button1->setPositionNormalized(Vec2(0.1f, 0.75f));
         button1->setTitleText("Jump to Page1");
         CCLOG("button1 content Size = %f, %f", button1->getContentSize().width,
               button1->getContentSize().height);
@@ -682,7 +688,7 @@ bool UIPageViewJumpToPageTest::init()
 
         auto button2 = static_cast<ui::Button*>(button1->clone());
         button2->setTitleText("Jump to Page2");
-        button2->setNormalizedPosition(Vec2(0.1, 0.65));
+        button2->setPositionNormalized(Vec2(0.1f, 0.65f));
         CCLOG("button2 content Size = %f, %f", button2->getContentSize().width,
               button2->getContentSize().height);
         button2->addClickEventListener([=](Ref*){
@@ -692,7 +698,7 @@ bool UIPageViewJumpToPageTest::init()
 
         auto button3 = static_cast<ui::Button*>(button2->clone());
         button3->setTitleText("Jump to Page3");
-        button3->setNormalizedPosition(Vec2(0.9, 0.75));
+        button3->setPositionNormalized(Vec2(0.9f, 0.75f));
         button3->addClickEventListener([=](Ref*){
             pageView->setCurrentPageIndex(2);
         });
@@ -700,7 +706,7 @@ bool UIPageViewJumpToPageTest::init()
 
         auto button4 = static_cast<ui::Button*>(button2->clone());
         button4->setTitleText("Jump to Page4");
-        button4->setNormalizedPosition(Vec2(0.9, 0.65));
+        button4->setPositionNormalized(Vec2(0.9f, 0.65f));
         button4->addClickEventListener([=](Ref*){
             pageView->setCurrentPageIndex(3);
         });
@@ -776,7 +782,7 @@ bool UIPageViewVerticalTest::init()
             pageView->insertCustomItem(layout, i);
         }
         
-        pageView->addEventListener(CC_CALLBACK_2(UIPageViewVerticalTest::pageViewEvent, this));
+        pageView->addEventListener((PageView::ccPageViewCallback)CC_CALLBACK_2(UIPageViewVerticalTest::pageViewEvent, this));
         
         _uiLayer->addChild(pageView);
         
@@ -793,7 +799,7 @@ void UIPageViewVerticalTest::pageViewEvent(Ref *pSender, PageView::EventType typ
         {
             PageView* pageView = dynamic_cast<PageView*>(pSender);
             
-            _displayValueLabel->setString(StringUtils::format("page = %ld", pageView->getCurrentPageIndex() + 1));
+            _displayValueLabel->setString(StringUtils::format("page = %ld", static_cast<long>(pageView->getCurrentPageIndex() + 1)));
         }
             break;
             
@@ -875,4 +881,170 @@ bool UIPageViewDisableTouchTest::init()
     }
     return false;
 }
+
+// UIPageViewTest
+UIPageViewChildSizeTest::UIPageViewChildSizeTest()
+    : _displayValueLabel(nullptr)
+{
+
+}
+
+UIPageViewChildSizeTest::~UIPageViewChildSizeTest()
+{
+}
+
+bool UIPageViewChildSizeTest::init()
+{
+    if (UIScene::init())
+    {
+        Size widgetSize = _widget->getContentSize();
+
+        // Add a label in which the dragpanel events will be displayed
+        _displayValueLabel = Text::create("Move by horizontal direction", "fonts/Marker Felt.ttf", 32);
+        _displayValueLabel->setAnchorPoint(Vec2(0.5f, -1.0f));
+        _displayValueLabel->setPosition(Vec2(widgetSize.width / 2.0f,
+            widgetSize.height / 2.0f +
+            _displayValueLabel->getContentSize().height * 1.5));
+        _uiLayer->addChild(_displayValueLabel);
+
+        // Add the black background
+        Text* alert = Text::create("PageView", "fonts/Marker Felt.ttf", 30);
+        alert->setColor(Color3B(159, 168, 176));
+        alert->setPosition(Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f - alert->getContentSize().height * 3.075f));
+        _uiLayer->addChild(alert);
+
+        Layout* root = static_cast<Layout*>(_uiLayer->getChildByTag(81));
+
+        Layout* background = dynamic_cast<Layout*>(root->getChildByName("background_Panel"));
+
+        // Create the page view
+        Size size(240, 130);
+        PageView* pageView = PageView::create();
+        pageView->setDirection(PageView::Direction::HORIZONTAL);
+        pageView->setContentSize(size);
+        Size backgroundSize = background->getContentSize();
+        pageView->setPosition((widgetSize - pageView->getContentSize()) / 2.0f);
+        pageView->removeAllItems();
+        pageView->setIndicatorEnabled(true);
+
+        int pageCount = 4;
+        for (int i = 0; i < pageCount; ++i)
+        {
+            ImageView* imageView = ImageView::create("cocosui/scrollviewbg.png");
+            imageView->setScale9Enabled(true);
+
+            Text* label = Text::create(StringUtils::format("page %d", (i + 1)), "fonts/Marker Felt.ttf", 30);
+            label->setColor(Color3B(192, 192, 192));
+            label->setAnchorPoint(Vec2::ZERO);
+            imageView->addChild(label);
+
+            pageView->insertCustomItem(imageView, i);
+        }
+
+        pageView->addEventListener((PageView::ccPageViewCallback)CC_CALLBACK_2(UIPageViewChildSizeTest::pageViewEvent, this));
+
+        _uiLayer->addChild(pageView);
+
+        return true;
+    }
+    return false;
+}
+
+void UIPageViewChildSizeTest::pageViewEvent(Ref *pSender, PageView::EventType type)
+{
+    switch (type)
+    {
+    case PageView::EventType::TURNING:
+    {
+        PageView* pageView = dynamic_cast<PageView*>(pSender);
+
+        _displayValueLabel->setString(StringUtils::format("page = %ld", static_cast<long>(pageView->getCurrentPageIndex() + 1)));
+    }
+    break;
+
+    default:
+        break;
+    }
+}
+
+// UIPageViewIndicatorTest
+UIPageViewIndicatorTest::UIPageViewIndicatorTest()
+: _displayValueLabel(nullptr)
+{
+    
+}
+
+UIPageViewIndicatorTest::~UIPageViewIndicatorTest()
+{
+}
+
+bool UIPageViewIndicatorTest::init()
+{
+    if (UIScene::init())
+    {
+        Size widgetSize = _widget->getContentSize();
+        
+        // Add a label in which the dragpanel events will be displayed
+        _displayValueLabel = Text::create("PageView indicator custom texture\nscale : 0.5, index color: RED", "fonts/Marker Felt.ttf", 16);
+        _displayValueLabel->setAnchorPoint(Vec2(0.5f, -1.0f));
+        _displayValueLabel->setPosition(Vec2(widgetSize.width / 2.0f,
+                                             widgetSize.height / 2.0f +
+                                             _displayValueLabel->getContentSize().height));
+        _uiLayer->addChild(_displayValueLabel);
+        
+        // Add the black background
+        Text* alert = Text::create("PageView", "fonts/Marker Felt.ttf", 30);
+        alert->setColor(Color3B(159, 168, 176));
+        alert->setPosition(Vec2(widgetSize.width / 2.0f, widgetSize.height / 2.0f - alert->getContentSize().height * 3.075f));
+        _uiLayer->addChild(alert);
+        
+        Layout* root = static_cast<Layout*>(_uiLayer->getChildByTag(81));
+        
+        Layout* background = dynamic_cast<Layout*>(root->getChildByName("background_Panel"));
+        
+        // Create the page view
+        PageView* pageView = PageView::create();
+        pageView->setContentSize(Size(240.0f, 130.0f));
+        Size backgroundSize = background->getContentSize();
+        pageView->setPosition(Vec2((widgetSize.width - backgroundSize.width) / 2.0f +
+                                   (backgroundSize.width - pageView->getContentSize().width) / 2.0f,
+                                   (widgetSize.height - backgroundSize.height) / 2.0f +
+                                   (backgroundSize.height - pageView->getContentSize().height) / 2.0f));
+        pageView->setDirection(ui::PageView::Direction::VERTICAL);
+        pageView->removeAllItems();
+        
+        pageView->setIndicatorEnabled(true);
+        pageView->setIndicatorSpaceBetweenIndexNodes(5);
+        pageView->setIndicatorIndexNodesScale(0.5);
+        pageView->setIndicatorIndexNodesTexture("cocosui/green_edit.png");
+        pageView->setIndicatorIndexNodesColor(Color3B::RED);
+
+        int pageCount = 4;
+        for (int i = 0; i < pageCount; ++i)
+        {
+            Layout* layout = Layout::create();
+            layout->setContentSize(Size(240.0f, 130.0f));
+            
+            ImageView* imageView = ImageView::create("cocosui/scrollviewbg.png");
+            imageView->setScale9Enabled(true);
+            imageView->setContentSize(Size(240, 130));
+            imageView->setPosition(Vec2(layout->getContentSize().width / 2.0f, layout->getContentSize().height / 2.0f));
+            layout->addChild(imageView);
+            
+            Text* label = Text::create(StringUtils::format("page %d",(i+1)), "fonts/Marker Felt.ttf", 30);
+            label->setColor(Color3B(192, 192, 192));
+            label->setPosition(Vec2(layout->getContentSize().width / 2.0f, layout->getContentSize().height / 2.0f));
+            layout->addChild(label);
+            
+            pageView->insertCustomItem(layout, i);
+        }
+        
+        _uiLayer->addChild(pageView);
+    
+        
+        return true;
+    }
+    return false;
+}
+
 

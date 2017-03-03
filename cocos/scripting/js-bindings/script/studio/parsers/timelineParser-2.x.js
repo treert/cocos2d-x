@@ -1,5 +1,5 @@
 /****************************************************************************
- Copyright (c) 2013-2014 Chukong Technologies Inc.
+ Copyright (c) 2013-2017 Chukong Technologies Inc.
 
  http://www.cocos2d-x.org
 
@@ -565,7 +565,7 @@
             widget.setFontSize(fontSize);
 
         var fontName = json["FontName"];
-        if(fontName != null)
+        if(fontName && "" !== fontName)
             widget.setFontName(fontName);
 
         var areaWidth = json["AreaWidth"];
@@ -601,7 +601,7 @@
         if(fontResource != null){
             var path = fontResource["Path"];
             //resoutceType = fontResource["Type"];
-            if(path != null){
+            if(path){
                 if (cc.sys.isNative) {
                     fontName = cc.path.join(cc.loader.resPath, resourcePath, path);
                 } else {
@@ -670,7 +670,7 @@
             widget.setTitleFontSize(fontSize);
 
         var fontName = json["FontName"];
-        if(fontName != null)
+        if(fontName && "" !== fontName)
             widget.setTitleFontName(fontName);
 
         var textColor = json["TextColor"];
@@ -685,7 +685,7 @@
         if(fontResource != null){
             var path = fontResource["Path"];
             //resoutceType = fontResource["Type"];
-            if(path != null){
+            if(path){
                 if (cc.sys.isNative) {
                     fontName = cc.path.join(cc.loader.resPath, resourcePath, path);
                 } else {
@@ -1133,7 +1133,7 @@
             widget.setFontSize(fontSize);
 
         var fontName = json["FontName"];
-        if(fontName != null)
+        if(fontName && "" !== fontName)
             widget.setFontName(fontName);
 
         var maxLengthEnabled = json["MaxLengthEnable"];
@@ -1154,7 +1154,7 @@
         if(fontResource != null){
             var path = fontResource["Path"];
             //resoutceType = fontResource["Type"];
-            if(path != null){
+            if(path){
                 if (cc.sys.isNative) {
                     fontName = cc.path.join(cc.loader.resPath, resourcePath, path);
                 } else {
@@ -1354,8 +1354,12 @@
                     cb(path, type);
                 else
                     cc.log("failed to get spriteFrame: %s", path);
-            }else
-                cb(resourcePath + path, type);
+            }else{
+                if(path && "" !== path && jsb.fileUtils.isFileExist(resourcePath + path))
+                    cb(resourcePath + path, type);
+                else
+                    cb("", type);
+            }
         }
     };
 
@@ -1777,7 +1781,7 @@
     });
 
 
-    load.registerParser("timeline", "2.*", parser);
+    load.registerParser("timeline", "*", parser);
 
 
 })(ccs._load, ccs._parser);

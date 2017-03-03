@@ -472,6 +472,24 @@ local function DemoSun()
 end
 
 ---------------------------------
+--  DemoPause
+---------------------------------
+local function DemoPause()
+local layer = getBaseLayer()
+
+emitter = cc.ParticleSmoke:create()
+-- emitter:retain()
+background:addChild(emitter, 10)
+
+emitter:setTexture(cc.Director:getInstance():getTextureCache():addImage(s_fire))
+
+setEmitterPosition()
+
+titleLabel:setString("Pasue Particle")
+return layer
+end
+
+---------------------------------
 --  DemoMeteor
 ---------------------------------
 local function DemoMeteor()
@@ -636,7 +654,7 @@ local function DemoBigFlower()
     emitter:setRadialAccel(-120)
     emitter:setRadialAccelVar(0)
 
-    -- tagential
+    -- tangential
     emitter:setTangentialAccel(30)
     emitter:setTangentialAccelVar(0)
 
@@ -707,7 +725,7 @@ local function DemoRotFlower()
     emitter:setRadialAccel(-120)
     emitter:setRadialAccelVar(0)
 
-    -- tagential
+    -- tangential
     emitter:setTangentialAccel(30)
     emitter:setTangentialAccelVar(0)
 
@@ -773,7 +791,7 @@ local function DemoModernArt()
     emitter:setRadialAccel(70)
     emitter:setRadialAccelVar(10)
 
-    -- tagential
+    -- tangential
     emitter:setTangentialAccel(80)
     emitter:setTangentialAccelVar(0)
 
@@ -1489,6 +1507,8 @@ function CreateParticleLayer()
 	elseif SceneIdx == 40 then return ReorderParticleSystems()
 	elseif SceneIdx == 41 then return PremultipliedAlphaTest()
 	elseif SceneIdx == 42 then return PremultipliedAlphaTest2()
+    elseif SceneIdx == 43  then return DemoPause()
+
 	end
 end
 

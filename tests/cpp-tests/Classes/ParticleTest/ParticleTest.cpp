@@ -1,5 +1,6 @@
 #include "ParticleTest.h"
 #include "../testResource.h"
+#include "editor-support/cocostudio/CocosStudioExtension.h"
 
 USING_NS_CC;
 
@@ -81,6 +82,43 @@ std::string DemoSun::subtitle() const
 
 //------------------------------------------------------------------
 //
+// DemoPause
+//
+//------------------------------------------------------------------
+void DemoPause::onEnter()
+{
+    ParticleDemo::onEnter();
+    
+    _emitter = ParticleSmoke::create();
+    _emitter->retain();
+    _background->addChild(_emitter, 10);
+    
+    _emitter->setTexture( Director::getInstance()->getTextureCache()->addImage(s_fire) );
+    
+    setEmitterPosition();
+    schedule(CC_SCHEDULE_SELECTOR(DemoPause::pauseEmitter), 2.0f);
+
+
+}
+void DemoPause::pauseEmitter(float time)
+{
+    if (_emitter->isPaused())
+    {
+        _emitter->resumeEmissions();
+    }
+    else
+    {
+        _emitter->pauseEmissions();
+    }
+}
+
+std::string DemoPause::subtitle() const
+{
+    return "Pause Particle";
+}
+
+//------------------------------------------------------------------
+//
 // DemoGalaxy
 //
 //------------------------------------------------------------------
@@ -157,7 +195,7 @@ void DemoBigFlower::onEnter()
     _emitter->setRadialAccel(-120);
     _emitter->setRadialAccelVar(0);
 
-    // tagential
+    // tangential
     _emitter->setTangentialAccel(30);
     _emitter->setTangentialAccelVar(0);
 
@@ -241,7 +279,7 @@ void DemoRotFlower::onEnter()
     _emitter->setRadialAccel(-120);
     _emitter->setRadialAccelVar(0);
 
-    // tagential
+    // tangential
     _emitter->setTangentialAccel(30);
     _emitter->setTangentialAccelVar(0);
 
@@ -495,7 +533,7 @@ void DemoModernArt::onEnter()
     _emitter->setRadialAccel(70);
     _emitter->setRadialAccelVar(10);
 
-    // tagential
+    // tangential
     _emitter->setTangentialAccel(80);
     _emitter->setTangentialAccelVar(0);
 
@@ -975,6 +1013,7 @@ ParticleTests::ParticleTests()
     ADD_TEST_CASE(DemoModernArt);
     ADD_TEST_CASE(DemoRing);
     ADD_TEST_CASE(ParallaxParticle);
+    ADD_TEST_CASE(DemoPause);
     addTestCase("BoilingFoam", [](){return DemoParticleFromFile::create("BoilingFoam");});
     addTestCase("BurstPipe", [](){return DemoParticleFromFile::create("BurstPipe"); });
     addTestCase("Comet", [](){return DemoParticleFromFile::create("Comet"); });
@@ -1009,6 +1048,7 @@ ParticleTests::ParticleTests()
     ADD_TEST_CASE(ParticleResetTotalParticles);
 
     ADD_TEST_CASE(ParticleIssue12310);
+    ADD_TEST_CASE(ParticleSpriteFrame);
 }
 
 ParticleDemo::~ParticleDemo(void)
@@ -2010,4 +2050,34 @@ void ParticleIssue12310::onEnter()
 std::string ParticleIssue12310::subtitle() const
 {
     return "You should see two Particle Emitters using different texture.";
+}
+
+//------------------------------------------------------------------
+//
+// ParticleSpriteFrame
+//
+//------------------------------------------------------------------
+void ParticleSpriteFrame::onEnter()
+{
+    ParticleDemo::onEnter();
+
+    _emitter = ParticleSmoke::create();
+    _emitter->retain();
+    _background->addChild(_emitter, 10);
+
+    SpriteFrameCache::getInstance()->addSpriteFramesWithFile("Particles/SpriteFrame.plist");
+
+    _emitter->setDisplayFrame( SpriteFrameCache::getInstance()->getSpriteFrameByName("dot.png") );
+
+    setEmitterPosition();
+}
+
+std::string ParticleSpriteFrame::title() const
+{
+    return "Particle from SpriteFrame";
+}
+
+std::string ParticleSpriteFrame::subtitle() const
+{
+    return "Should not use entire texture atlas";
 }
